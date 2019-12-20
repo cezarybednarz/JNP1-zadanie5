@@ -5,6 +5,8 @@
 #include <unordered_set>
 #include <iterator>
 #include <memory>
+#include <list>
+#include <unordered_map>
 
 // skopiowany, mozna pozmieniac
 template <class T>
@@ -50,7 +52,6 @@ template <class K, class V, class Hash = std::hash<K>>
 class insertion_ordered_map {
 
 public:
-
     insertion_ordered_map();
     insertion_ordered_map(insertion_ordered_map const &other);
     insertion_ordered_map(insertion_ordered_map &&other);
@@ -74,6 +75,13 @@ public:
         bool operator!=(const iterator& it);
         std::pair<const K&, const V&> operator*();
     };
+
+private:
+    typedef std::list<std::pair<K, V> > List;
+    typedef std::unordered_map<K, typename List::iterator, Hash> Map;
+
+    std::shared_ptr<List> list_ptr;
+    std::shared_ptr<Map> map_ptr;
 };
 
 class lookup_error : public std::exception {
