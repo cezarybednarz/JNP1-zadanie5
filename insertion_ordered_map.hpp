@@ -17,34 +17,34 @@ private:
 
     void detach() {
         T* tmp = m_sp.get();
-        if( !( tmp == 0 || m_sp.unique() ) ) {
-            m_sp = RefPtr( new T( *tmp ) );
+        if(!( tmp == 0 || m_sp.unique())) {
+            m_sp = RefPtr(new T(*tmp));
         }
     }
 
 public:
-    CowPtr(T* t)
-        :   m_sp(t)
-    {}
-    CowPtr(const RefPtr& refptr)
-        :   m_sp(refptr)
-    {}
+    CowPtr(T* t) : m_sp(t) {}
+
+    CowPtr(const RefPtr& refptr) : m_sp(refptr) {}
+
     const T& operator*() const {
         return *m_sp;
     }
+
     T& operator*() {
         detach();
         return *m_sp;
     }
+
     const T* operator->() const {
         return m_sp.operator->();
     }
+
     T* operator->() {
         detach();
         return m_sp.operator->();
     }
 };
-
 
 template <class K, class V, class Hash = std::hash<K>>
 class insertion_ordered_map {
@@ -66,17 +66,19 @@ public:
     void clear();
     bool contains(K const &k) const;
 
+    class iterator {
+        iterator();
+        iterator(const iterator &it);
+        iterator& operator++();
+        bool operator==(const iterator& it);
+        bool operator!=(const iterator& it);
+        std::pair<const K&, const V&> operator*();
+    };
 };
 
-
-template<typename K, typename V>
-class iterator : public std::iterator<std::forward_iterator_tag, V> {
+class lookup_error : public std::exception {
 
 public:
-
-    
-
-
 
 };
 
