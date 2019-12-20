@@ -51,6 +51,13 @@ public:
 template <class K, class V, class Hash = std::hash<K>>
 class insertion_ordered_map {
 
+private:
+    typedef std::list<std::pair<K, V> > List;
+    typedef std::unordered_map<K, typename List::iterator, Hash> Map;
+
+    CowPtr<List> list_ptr;
+    CowPtr<Map> map_ptr;
+
 public:
     insertion_ordered_map();
     insertion_ordered_map(insertion_ordered_map const &other);
@@ -68,20 +75,41 @@ public:
     bool contains(K const &k) const;
 
     class iterator {
-        iterator();
-        iterator(const iterator &it);
-        iterator& operator++();
-        bool operator==(const iterator& it);
-        bool operator!=(const iterator& it);
-        std::pair<const K&, const V&> operator*();
+        typename List::iterator it;
+        iterator(const typename List::iterator &list_it) {
+            it = list_it;
+        }
+
+    public:
+        iterator() {
+            it = list_ptr->begin();
+        }
+        iterator(const iterator &_it) {
+            it = _it;
+        }
+        iterator& operator++() {
+            it++;
+            return *this;
+        }
+        bool operator==(const iterator& _it) const {
+            return it == _it;
+        }
+        bool operator!=(const iterator& _it) const {
+            return it != _it;
+        }
+        const std::pair<const K&, const V&> operator*() const {
+            return *it;
+        }
+        friend iterator &begin() {
+            return iterator(insertion_ordered_map::list_ptr->begin());
+        }
+        friend iterator &end() {
+            return iterator(insertion_ordered_map::list_ptr->end());
+        }
     };
 
-private:
-    typedef std::list<std::pair<K, V> > List;
-    typedef std::unordered_map<K, typename List::iterator, Hash> Map;
 
-    std::shared_ptr<List> list_ptr;
-    std::shared_ptr<Map> map_ptr;
+
 };
 
 class lookup_error : public std::exception {
