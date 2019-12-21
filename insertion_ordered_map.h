@@ -54,24 +54,25 @@ private:
 
 public:
     insertion_ordered_map();
+    ~insertion_ordered_map() noexcept;
     insertion_ordered_map(insertion_ordered_map const &other);
-    insertion_ordered_map(insertion_ordered_map &&other);
+    insertion_ordered_map(insertion_ordered_map &&other) noexcept;
     insertion_ordered_map &operator=(insertion_ordered_map other);
     bool insert(K const &k, V const &v);
     void erase(K const &k);
     void merge(insertion_ordered_map const &other);
-    V &at(K const &k);
-    V const &at(K const &k) const;
-    V &operator[](K const &k);
-    size_t size() const;
-    bool empty() const;
-    void clear();
-    bool contains(K const &k) const;
+    V &at(K const &k); // lookup_error
+    V const &at(K const &k) const; // lookup_error
+    V &operator[](K const &k); // push back i emplace rzuca wyjatki
+    size_t size() const noexcept;
+    bool empty() const noexcept;
+    void clear() noexcept;
+    bool contains(K const &k) const noexcept;
 
     using iterator = typename List::const_iterator;
 
-    iterator begin() const;
-    iterator end() const;
+    iterator begin() const noexcept;
+    iterator end() const noexcept;
 };
 
 class lookup_error : public std::exception {
@@ -82,9 +83,12 @@ public:
 };
 
 template <class K, class V, class Hash>
-insertion_ordered_map<K, V, Hash>::insertion_ordered_map() : 
-    list_ptr(CowPtr<List>(new List)), 
+insertion_ordered_map<K, V, Hash>::insertion_ordered_map() :
+    list_ptr(CowPtr<List>(new List)),
     map_ptr(CowPtr<Map>(new Map)) {}
+
+template <class K, class V, class Hash>
+insertion_ordered_map<K, V, Hash>::~insertion_ordered_map() noexcept = default;
 
 template <class K, class V, class Hash>
 insertion_ordered_map<K, V, Hash>::insertion_ordered_map(insertion_ordered_map const &other) {
@@ -101,7 +105,7 @@ insertion_ordered_map<K, V, Hash>::insertion_ordered_map(insertion_ordered_map c
     }
 }
 template <class K, class V, class Hash>
-insertion_ordered_map<K, V, Hash>::insertion_ordered_map(insertion_ordered_map &&other) :
+insertion_ordered_map<K, V, Hash>::insertion_ordered_map(insertion_ordered_map &&other) noexcept :
     list_ptr(std::move(other.list_ptr)),
     map_ptr(std::move(other.map_ptr)) {}
 
@@ -139,26 +143,46 @@ bool insertion_ordered_map<K, V, Hash>::insert(K const &k, V const &v) {
 
 template <class K, class V, class Hash>
 void insertion_ordered_map<K, V, Hash>::erase(K const &k){
-    list_ptr->erase(map_ptr->at(k));
-    map_ptr->erase(k);
+    try {
+        list_ptr->erase(map_ptr->at(k));
+        map_ptr->erase(k);
+    }
+    catch(std::exception &e) {
+        throw e;
+    }
 }
 
 template <class K, class V, class Hash>
 void insertion_ordered_map<K, V, Hash>::merge(insertion_ordered_map<K, V, Hash> const &other) {
-    for(const auto &it : *other.list_ptr) {
-        insert(it.first, it.second);
+    try {
+        insertion_ordered_map<K, V, Hash> copy(*this);
+        for(const auto &it : *other.list_ptr) {
+            copy.insert(it.first, it.second);
+        }
+        *this = copy;
+    }
+    catch(std::exception &e) {
+        throw e;
     }
 }
 
 template <class K, class V, class Hash>
 V &insertion_ordered_map<K, V, Hash>::at(K const &k) {
+    if(map_ptr->find(k) == map_ptr->end()) {
+        throw lookup_error();
+    }
+
     refered = true;
     return map_ptr->at(k)->second;
 }
 
 template <class K, class V, class Hash>
 V const &insertion_ordered_map<K, V, Hash>::at(K const &k) const {
-    return list_ptr->find(map_ptr->at(k))->second;
+    if(map_ptr->find(k) == map_ptr->end()) {
+        throw lookup_error();
+    }
+
+    return map_ptr->at(k)->second;
 }
 
 template <class K, class V, class Hash>
@@ -166,44 +190,55 @@ V &insertion_ordered_map<K, V, Hash>::operator[](K const &k) {
     refered = true;
 
     if(map_ptr->find(k) == map_ptr->end()) {
-        list_ptr->push_back(std::make_pair(k, V()));
-        map_ptr->emplace(k, prev(list_ptr->end()));
+        try {
+            list_ptr->push_back(std::make_pair(k, V()));
+            try {
+                map_ptr->emplace(k, prev(list_ptr->end()));
+            }
+            catch(std::exception &e) {
+                list_ptr->pop_back();
+                throw e;
+            }
+        }
+        catch(std::exception &e) {
+            throw e;
+        }
     }
 
     return map_ptr->at(k)->second;
 }
 
 template <class K, class V, class Hash>
-size_t insertion_ordered_map<K, V, Hash>::size() const {
+size_t insertion_ordered_map<K, V, Hash>::size() const noexcept {
     return list_ptr->size();
 }
 
 template <class K, class V, class Hash>
-bool insertion_ordered_map<K, V, Hash>::empty() const {
+bool insertion_ordered_map<K, V, Hash>::empty() const noexcept {
     return list_ptr->empty();
 }
 
 template <class K, class V, class Hash>
-void insertion_ordered_map<K, V, Hash>::clear() {
+void insertion_ordered_map<K, V, Hash>::clear() noexcept {
     list_ptr->clear();
     map_ptr->clear();
     refered = false;
 }
 
 template <class K, class V, class Hash>
-bool insertion_ordered_map<K, V, Hash>::contains(K const &k) const {
+bool insertion_ordered_map<K, V, Hash>::contains(K const &k) const noexcept {
     return map_ptr->find(k) != map_ptr->end();
 }
 
 
 template <class K, class V, class Hash>
-typename insertion_ordered_map<K, V, Hash>::iterator insertion_ordered_map<K, V, Hash>::begin() const {
+typename insertion_ordered_map<K, V, Hash>::iterator insertion_ordered_map<K, V, Hash>::begin() const noexcept{
     return list_ptr->begin();
 }
 
 
 template <class K, class V, class Hash>
-typename insertion_ordered_map<K, V, Hash>::iterator insertion_ordered_map<K, V, Hash>::end() const {
+typename insertion_ordered_map<K, V, Hash>::iterator insertion_ordered_map<K, V, Hash>::end() const noexcept {
     return list_ptr->end();
 }
 
