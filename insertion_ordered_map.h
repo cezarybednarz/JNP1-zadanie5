@@ -22,6 +22,7 @@ private:
         }
     }
 public:
+    CowPtr() : m_sp(nullptr) {}
     CowPtr(T* t) : m_sp(t) {}
     CowPtr(const RefPtr& refptr) : m_sp(refptr) {}
     const T& operator*() const {
@@ -81,14 +82,13 @@ public:
 };
 
 template <class K, class V, class Hash>
-insertion_ordered_map<K, V, Hash>::insertion_ordered_map() {
-    list_ptr = CowPtr<List>(new List);
-    map_ptr = CowPtr<Map>(new Map);
-}
+insertion_ordered_map<K, V, Hash>::insertion_ordered_map() : 
+    list_ptr(CowPtr<List>(new List)), 
+    map_ptr(CowPtr<Map>(new Map)) {}
 
 template <class K, class V, class Hash>
 insertion_ordered_map<K, V, Hash>::insertion_ordered_map(insertion_ordered_map const &other) {
-    if(!other->refered) {
+    if(!other.refered) {
         list_ptr = other.list_ptr;
         map_ptr = other.map_ptr;
     } else {
@@ -107,20 +107,32 @@ insertion_ordered_map<K, V, Hash>::insertion_ordered_map(insertion_ordered_map &
 
 template <class K, class V, class Hash>
 insertion_ordered_map<K, V, Hash> &insertion_ordered_map<K, V, Hash>::operator=(insertion_ordered_map other) {
-    map_ptr(other.map_ptr);
-    list_ptr(other.list_ptr);
+    if(!other.refered) {
+        list_ptr = other.list_ptr;
+        map_ptr = other.map_ptr;
+    } else {
+        list_ptr = CowPtr(new List(*other.list_ptr));
+        map_ptr = CowPtr(new Map(*other.map_ptr));
+
+        for(typename List::iterator it = list_ptr->begin(); it != list_ptr->end(); ++it) {
+            map_ptr->at(it->first) = it;
+        }
+    }
+
+    return *this;
 }
 
 template <class K, class V, class Hash>
 bool insertion_ordered_map<K, V, Hash>::insert(K const &k, V const &v) {
     if(map_ptr->find(k) == map_ptr->end()) {
-        map_ptr->insert(k, list_ptr->push_back(std::make_pair(k, v)));
+        list_ptr->push_back(std::make_pair(k, v));
+        map_ptr->emplace(k, prev(list_ptr->end()));
         return true;
-    }
-    else {
+    } else {
         V curr_v = map_ptr->at(k)->second;
         list_ptr->erase(map_ptr->at(k));
-        map_ptr->at(k) = list_ptr->insert(list_ptr->push_back(std::make_pair(k, curr_v)));
+        list_ptr->push_back(std::make_pair(k, curr_v));
+        map_ptr->at(k) = prev(list_ptr->end());
         return false;
     }
 }
@@ -141,7 +153,7 @@ void merge(insertion_ordered_map<K, V, Hash> const &other) {
 template <class K, class V, class Hash>
 V &insertion_ordered_map<K, V, Hash>::at(K const &k) {
     refered = true;
-    return list_ptr->find(map_ptr->at(k))->second;
+    return map_ptr->at(k)->second;
 }
 
 template <class K, class V, class Hash>
@@ -153,10 +165,12 @@ template <class K, class V, class Hash>
 V &insertion_ordered_map<K, V, Hash>::operator[](K const &k) {
     refered = true;
 
-    if(map_ptr->find(k) == map_ptr->end())
-        map_ptr->insert(k, V());
+    if(map_ptr->find(k) == map_ptr->end()) {
+        list_ptr->push_back(std::make_pair(k, V()));
+        map_ptr->insert(k, prev(list_ptr->end()));
+    }
 
-    return list_ptr->find(map_ptr->at(k))->second;
+    return map_ptr->at(k)->second;
 }
 
 template <class K, class V, class Hash>
