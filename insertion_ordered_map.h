@@ -60,7 +60,7 @@ public:
     insertion_ordered_map &operator=(insertion_ordered_map other);
     bool insert(K const &k, V const &v);
     void erase(K const &k);
-    void merge(insertion_ordered_map const &other);
+    void merge(insertion_ordered_map const &other); // tu skonczylem dodawanie wyjatkow
     V &at(K const &k); // lookup_error
     V const &at(K const &k) const; // lookup_error
     V &operator[](K const &k); // push back i emplace rzuca wyjatki
