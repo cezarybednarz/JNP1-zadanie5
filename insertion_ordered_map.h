@@ -31,11 +31,11 @@ using namespace std;
 #define nd s
 #define pb PB
 #define eb emplace_back
-#define mp make_pair                
+#define mp make_pair
 #define siz(c) SIZ(c)
 const int inf = 1e9 + 7;
 const LL INF = 1e18L + 7;
- 
+
 #define sim template<class n
 sim, class s> ostream & operator << (ostream &p, pair<n, s> x)
 {return p << "<" << x.f << ", " << x.s << ">";}
@@ -135,8 +135,19 @@ public:
 template <class K, class V, class Hash>
 void insertion_ordered_map<K, V, Hash>::detach() {
     if(!list_ptr.unique()) {
-        list_ptr = std::make_shared<List>(*list_ptr);
-        map_ptr = std::make_shared<Map>(*map_ptr);
+
+        try {
+            list_ptr = std::make_shared<List>(*list_ptr);
+            try {
+                map_ptr = std::make_shared<Map>(*map_ptr);
+            }
+            catch() {
+
+            }
+        }
+        catch() {
+
+        }
 
         for(typename List::iterator it = list_ptr->begin(); it != list_ptr->end(); ++it) {
             map_ptr->at(it->first) = it;
@@ -211,13 +222,9 @@ template <class K, class V, class Hash>
 void insertion_ordered_map<K, V, Hash>::erase(K const &k) {
     detach();
 
-    try {
-        list_ptr->erase(map_ptr->at(k));
-        map_ptr->erase(k);
-    }
-    catch(std::exception &e) {
-        throw e;
-    }
+    list_ptr->erase(map_ptr->at(k));
+    map_ptr->erase(k);
+
 
     if(list_ptr->empty())
         refered = false;
@@ -263,7 +270,6 @@ V const &insertion_ordered_map<K, V, Hash>::at(K const &k) const {
 template <class K, class V, class Hash>
 V &insertion_ordered_map<K, V, Hash>::operator[](K const &k) {
     detach();
-    refered = true;
 
     if(map_ptr->find(k) == map_ptr->end()) {
         try {
@@ -281,6 +287,7 @@ V &insertion_ordered_map<K, V, Hash>::operator[](K const &k) {
         }
     }
 
+    refered = true;
     return map_ptr->at(k)->second;
 }
 
