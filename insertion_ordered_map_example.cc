@@ -11,7 +11,7 @@ namespace {
 
 int main()
 {
-  int keys[] = {3, 1, 2};
+  /*int keys[] = {3, 1, 2};
 
   insertion_ordered_map<int, int> iom1 = f({});
 
@@ -78,5 +78,5 @@ int main()
     vec.push_back(iom1);  // Wszystkie obiekty w vec współdzielą dane.
   }
 
-  return 0;
+  return 0;*/
 }

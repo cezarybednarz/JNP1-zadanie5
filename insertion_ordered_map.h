@@ -74,7 +74,7 @@ public:
 
     public:
         iterator() {
-            it = list_ptr->begin();
+            it = nullptr;
         }
         iterator(const iterator &_it) {
             it = _it;
@@ -92,13 +92,10 @@ public:
         const std::pair<const K&, const V&> operator*() const {
             return *it;
         }
-        friend iterator &begin() {
-            return iterator(insertion_ordered_map::list_ptr->begin());
-        }
-        friend iterator &end() {
-            return iterator(insertion_ordered_map::list_ptr->end());
-        }
     };
+
+    iterator &begin();
+    iterator &end();
 };
 
 class lookup_error : public std::exception {
