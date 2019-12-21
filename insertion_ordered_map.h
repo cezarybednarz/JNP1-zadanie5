@@ -93,17 +93,16 @@ public:
 
 template <class K, class V, class Hash = std::hash<K>>
 class insertion_ordered_map {
-public:
+private:
     using List = std::list<std::pair<K, V> >;
     using Map = std::unordered_map<K, typename List::iterator, Hash>;
 
     std::shared_ptr<List> list_ptr;
     std::shared_ptr<Map> map_ptr;
     void detach();
+    bool refered = false;
 
 public:
-        bool refered = false;
-
     insertion_ordered_map();
     ~insertion_ordered_map() noexcept;
     insertion_ordered_map(insertion_ordered_map const &other);
@@ -178,13 +177,16 @@ insertion_ordered_map<K, V, Hash> &insertion_ordered_map<K, V, Hash>::operator=(
     if(!other.refered) {
         list_ptr = other.list_ptr;
         map_ptr = other.map_ptr;
-
+        refered = other.refered;
     } else {
         list_ptr = std::make_shared<List>(*other.list_ptr);
         map_ptr = std::make_shared<Map>(*other.map_ptr);
+
         for(typename List::iterator it = list_ptr->begin(); it != list_ptr->end(); ++it) {
             map_ptr->at(it->first) = it;
        }
+
+       refered = false;
     }
 
     return *this;
@@ -225,8 +227,6 @@ void insertion_ordered_map<K, V, Hash>::erase(K const &k) {
 
 template <class K, class V, class Hash>
 void insertion_ordered_map<K, V, Hash>::merge(insertion_ordered_map<K, V, Hash> const &other) {
-    detach();
-
     try {
         insertion_ordered_map<K, V, Hash> copy(*this);
         for(const auto &it : *other.list_ptr) {
