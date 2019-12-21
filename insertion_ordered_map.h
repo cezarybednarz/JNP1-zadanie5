@@ -69,12 +69,8 @@ public:
 
     using iterator = typename List::const_iterator;
 
-    iterator begin() const {
-        return iterator(list_ptr->begin());
-    }
-    iterator end() const {
-        return iterator(list_ptr->end());
-    }
+    iterator begin() const;
+    iterator end() const;
 };
 
 class lookup_error : public std::exception {
@@ -183,6 +179,18 @@ void insertion_ordered_map<K, V, Hash>::clear() {
 template <class K, class V, class Hash>
 bool insertion_ordered_map<K, V, Hash>::contains(K const &k) const {
     return map_ptr->find(k) != map_ptr->end();
+}
+
+
+template <class K, class V, class Hash>
+typename insertion_ordered_map<K, V, Hash>::iterator insertion_ordered_map<K, V, Hash>::begin() const {
+    return iterator(list_ptr->begin());
+}
+
+
+template <class K, class V, class Hash>
+typename insertion_ordered_map<K, V, Hash>::iterator insertion_ordered_map<K, V, Hash>::end() const {
+    return iterator(list_ptr->end());
 }
 
 #endif // __INSERTION_ORDERED_MAP__
