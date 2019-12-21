@@ -167,7 +167,7 @@ V &insertion_ordered_map<K, V, Hash>::operator[](K const &k) {
 
     if(map_ptr->find(k) == map_ptr->end()) {
         list_ptr->push_back(std::make_pair(k, V()));
-        map_ptr->insert(k, prev(list_ptr->end()));
+        map_ptr->emplace(k, prev(list_ptr->end()));
     }
 
     return map_ptr->at(k)->second;
