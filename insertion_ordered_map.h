@@ -184,13 +184,13 @@ bool insertion_ordered_map<K, V, Hash>::contains(K const &k) const {
 
 template <class K, class V, class Hash>
 typename insertion_ordered_map<K, V, Hash>::iterator insertion_ordered_map<K, V, Hash>::begin() const {
-    return iterator(list_ptr->begin());
+    return list_ptr->begin();
 }
 
 
 template <class K, class V, class Hash>
 typename insertion_ordered_map<K, V, Hash>::iterator insertion_ordered_map<K, V, Hash>::end() const {
-    return iterator(list_ptr->end());
+    return list_ptr->end();
 }
 
 #endif // __INSERTION_ORDERED_MAP__
