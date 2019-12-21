@@ -81,6 +81,8 @@ int main()
   iom6[6] = 6;
 
   iom2.merge(iom6);
+  //debug(iom2.refered);
+
   {
     int order[] = {2, 4, 1, 5, 6};
     int values[] = {2, 10, 1, 5, 6};
@@ -94,10 +96,10 @@ int main()
 
   //debug(iom1.refered);
     
-  for (int i = 0; i < 1000; i++) {
+  for (int i = 0; i < 10000; i++) {
     iom1.insert(i, i);
   }
-  for (int i = 0; i < 1000; i++) {
+  for (int i = 0; i < 100000; i++) {
     vec.push_back(iom1);  // Wszystkie obiekty w vec współdzielą dane.
   }
 
