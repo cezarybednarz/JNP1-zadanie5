@@ -31,11 +31,11 @@ using namespace std;
 #define nd s
 #define pb PB
 #define eb emplace_back
-#define mp make_pair                
+#define mp make_pair
 #define siz(c) SIZ(c)
 const int inf = 1e9 + 7;
 const LL INF = 1e18L + 7;
- 
+
 #define sim template<class n
 sim, class s> ostream & operator << (ostream &p, pair<n, s> x)
 {return p << "<" << x.f << ", " << x.s << ">";}
@@ -110,7 +110,7 @@ public:
     insertion_ordered_map &operator=(insertion_ordered_map other);
     bool insert(K const &k, V const &v);
     void erase(K const &k);
-    void merge(insertion_ordered_map const &other);
+    void merge(insertion_ordered_map const &other); // tu skonczylem dodawanie wyjatkow
     V &at(K const &k); // lookup_error
     V const &at(K const &k) const; // lookup_error
     V &operator[](K const &k); // push back i emplace rzuca wyjatki
@@ -134,8 +134,21 @@ public:
 template <class K, class V, class Hash>
 void insertion_ordered_map<K, V, Hash>::detach() {
     if(!list_ptr.unique()) {
-        list_ptr = std::make_shared<List>(*list_ptr);
-        map_ptr = std::make_shared<Map>(*map_ptr);
+
+        try {
+            auto ptr_copy = list_ptr;
+            list_ptr = std::make_shared<List>(*list_ptr);
+            try {
+                map_ptr = std::make_shared<Map>(*map_ptr);
+            }
+            catch(std::exception &e) {
+                list_ptr = ptr_copy;
+                throw e;
+            }
+        }
+        catch(std::exception &e) {
+            throw e;
+        }
 
         for(typename List::iterator it = list_ptr->begin(); it != list_ptr->end(); ++it) {
             map_ptr->at(it->first) = it;
@@ -146,9 +159,15 @@ void insertion_ordered_map<K, V, Hash>::detach() {
 }
 
 template <class K, class V, class Hash>
-insertion_ordered_map<K, V, Hash>::insertion_ordered_map() :
-    list_ptr(std::make_shared<List>()),
-    map_ptr(std::make_shared<Map>()) {}
+insertion_ordered_map<K, V, Hash>::insertion_ordered_map() {
+    try {
+        list_ptr = std::make_shared<List>();
+        map_ptr = std::make_shared<Map>();
+    }
+    catch(exception &e) {
+        throw e;
+    }
+}
 
 template <class K, class V, class Hash>
 insertion_ordered_map<K, V, Hash>::~insertion_ordered_map() noexcept = default;
@@ -159,8 +178,21 @@ insertion_ordered_map<K, V, Hash>::insertion_ordered_map(insertion_ordered_map c
         list_ptr = other.list_ptr;
         map_ptr = other.map_ptr;
     } else {
-        list_ptr = std::make_shared<List>(*other.list_ptr);
-        map_ptr = std::make_shared<Map>(*other.map_ptr);
+        try {
+            auto ptr_copy = list_ptr;
+            list_ptr = std::make_shared<List>(*other.list_ptr);
+            try {
+                map_ptr = std::make_shared<Map>(*other.map_ptr);
+            }
+            catch(std::exception &e) {
+                list_ptr = ptr_copy;
+                throw e;
+            }
+        }
+        catch(std::exception &e) {
+            throw e;
+        }
+
 
         for(typename List::iterator it = list_ptr->begin(); it != list_ptr->end(); ++it) {
             map_ptr->at(it->first) = it;
@@ -179,8 +211,20 @@ insertion_ordered_map<K, V, Hash> &insertion_ordered_map<K, V, Hash>::operator=(
         map_ptr = other.map_ptr;
         refered = other.refered;
     } else {
-        list_ptr = std::make_shared<List>(*other.list_ptr);
-        map_ptr = std::make_shared<Map>(*other.map_ptr);
+        try {
+            auto ptr_copy = list_ptr;
+            list_ptr = std::make_shared<List>(*other.list_ptr);
+            try {
+                map_ptr = std::make_shared<Map>(*other.map_ptr);
+            }
+            catch(std::exception &e) {
+                list_ptr = ptr_copy;
+                throw e;
+            }
+        }
+        catch(std::exception &e) {
+            throw e;
+        }
 
         for(typename List::iterator it = list_ptr->begin(); it != list_ptr->end(); ++it) {
             map_ptr->at(it->first) = it;
@@ -194,32 +238,65 @@ insertion_ordered_map<K, V, Hash> &insertion_ordered_map<K, V, Hash>::operator=(
 
 template <class K, class V, class Hash>
 bool insertion_ordered_map<K, V, Hash>::insert(K const &k, V const &v) {
-    detach();
+    try {
+        detach();
+    }
+    catch(std::exception &e) {
+        throw e;
+    }
 
     if(map_ptr->find(k) == map_ptr->end()) {
-        list_ptr->push_back(std::make_pair(k, v));
-        map_ptr->emplace(k, prev(list_ptr->end()));
+        try {
+            list_ptr->push_back(std::make_pair(k, v));
+            try {
+                map_ptr->emplace(k, prev(list_ptr->end()));
+            }
+            catch(std::exception &e) {
+                list_ptr->pop_back();
+                throw e;
+            }
+        }
+        catch(std::exception& e) {
+            throw e;
+        }
         return true;
     } else {
-        V curr_v = map_ptr->at(k)->second;
-        list_ptr->erase(map_ptr->at(k));
-        list_ptr->push_back(std::make_pair(k, curr_v));
-        map_ptr->at(k) = prev(list_ptr->end());
+        try {
+            V curr_v = map_ptr->at(k)->second;
+            try {
+                try {
+                    list_ptr->push_back(std::make_pair(k, curr_v));
+                    list_ptr->erase(map_ptr->at(k));
+                    map_ptr->at(k) = prev(list_ptr->end());
+                }
+                catch(std::exception &e) {
+                    list_ptr->pop_back();
+                    throw e;
+                }
+            }
+            catch(std::exception &e) {
+                throw e;
+            }
+        }
+        catch(std::exception &e) {
+            throw e;
+        }
         return false;
     }
 }
 
 template <class K, class V, class Hash>
 void insertion_ordered_map<K, V, Hash>::erase(K const &k) {
-    detach();
-
     try {
-        list_ptr->erase(map_ptr->at(k));
-        map_ptr->erase(k);
+        detach();
     }
     catch(std::exception &e) {
         throw e;
     }
+
+    list_ptr->erase(map_ptr->at(k));
+    map_ptr->erase(k);
+
 
     if(list_ptr->empty())
         refered = false;
@@ -241,7 +318,12 @@ void insertion_ordered_map<K, V, Hash>::merge(insertion_ordered_map<K, V, Hash> 
 
 template <class K, class V, class Hash>
 V &insertion_ordered_map<K, V, Hash>::at(K const &k) {
-    detach();
+    try {
+        detach();
+    }
+    catch(std::exception &e) {
+        throw e;
+    }
 
     if(map_ptr->find(k) == map_ptr->end()) {
         throw lookup_error();
@@ -262,8 +344,12 @@ V const &insertion_ordered_map<K, V, Hash>::at(K const &k) const {
 
 template <class K, class V, class Hash>
 V &insertion_ordered_map<K, V, Hash>::operator[](K const &k) {
-    detach();
-    refered = true;
+    try {
+        detach();
+    }
+    catch(std::exception &e) {
+        throw e;
+    }
 
     if(map_ptr->find(k) == map_ptr->end()) {
         try {
@@ -281,6 +367,7 @@ V &insertion_ordered_map<K, V, Hash>::operator[](K const &k) {
         }
     }
 
+    refered = true;
     return map_ptr->at(k)->second;
 }
 
