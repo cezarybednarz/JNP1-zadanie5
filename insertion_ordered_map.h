@@ -67,40 +67,17 @@ public:
     void clear();
     bool contains(K const &k) const;
 
-    class iterator {
-        typename List::iterator it;
-        iterator(const typename List::iterator &list_it) {
-            it = list_it;
-        }
+    using iterator = typename List::const_iterator;
 
-    public:
-        iterator() {
-            it = nullptr;
-        }
-        iterator(const iterator &_it) {
-            it = _it;
-        }
-        iterator& operator++() {
-            it++;
-            return *this;
-        }
-        bool operator==(const iterator& _it) const {
-            return it == _it;
-        }
-        bool operator!=(const iterator& _it) const {
-            return it != _it;
-        }
-        const std::pair<const K&, const V&> operator*() const {
-            return *it;
-        }
-    };
-
-    iterator &begin();
-    iterator &end();
+    iterator begin() const {
+        return iterator(list_ptr->begin());
+    }
+    iterator end() const {
+        return iterator(list_ptr->end());
+    }
 };
 
 class lookup_error : public std::exception {
-
 public:
     const char* what() const throw() {
     	return "lookup_error";
@@ -207,16 +184,5 @@ template <class K, class V, class Hash>
 bool insertion_ordered_map<K, V, Hash>::contains(K const &k) const {
     return map_ptr->find(k) != map_ptr->end();
 }
-
-template <class K, class V, class Hash>
-typename insertion_ordered_map<K, V, Hash>::iterator &insertion_ordered_map<K, V, Hash>::begin() {
-    return insertion_ordered_map::iterator(list_ptr->begin());
-}
-
-template <class K, class V, class Hash>
-typename insertion_ordered_map<K, V, Hash>::iterator &insertion_ordered_map<K, V, Hash>::end() {
-    return insertion_ordered_map::iterator(list_ptr->end());
-}
-
 
 #endif // __INSERTION_ORDERED_MAP__
