@@ -20,7 +20,7 @@ using namespace std;
 #define s second
 #define MP make_pair
 #define PB push_back
-#define endl '\n'
+//#define endl '\n'
 #define ALL(c) (c).begin(), (c).end()
 #define SIZ(c) (int)(c).size()
 #define REP(i, n) for (int i = 0; i < (int)(n); i++)
