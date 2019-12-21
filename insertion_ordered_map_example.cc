@@ -21,14 +21,31 @@ int main()
   auto &ref = iom1[3];
 
   insertion_ordered_map<int, int> iom2(iom1); // Wykonuje się pełna kopia. Dlaczego?
+  //debug(iom2.refered);
+
   insertion_ordered_map<int, int> iom3;
   iom3 = iom2;
 
+  //debug(iom1.list_ptr.use_count());
+  //debug(iom2.list_ptr.use_count());
+  //debug(iom3.list_ptr.use_count());
+
   ref = 10;
+  //debug(I(iom2.refered));
+
   assert(iom1[3] == 10);
   assert(iom2[3] != 10);
 
+  //debug(I(iom2.refered));
+  //debug(I(iom2.list_ptr.use_count()));
+
   iom2.erase(3); // Przy wyłączonych asercjach obiekt iom2 tutaj dokonuje kopii i przestaje współdzielić dane z iom3.
+  
+  //debug(I(iom2.refered));
+  //debug(I(iom2.list_ptr.use_count()));
+
+  //return 0;
+
   assert(iom2.size() == 2);
   assert(!iom2.contains(3));
   assert(iom2.contains(2));
@@ -51,6 +68,9 @@ int main()
       assert(it->first == order[i] && it->second == values[i]);
   }
 
+    //debug(iom2.refered);
+
+
   auto piom5 = std::make_unique<insertion_ordered_map<int, int>>();
   piom5->insert(4, 0);
   assert(piom5->at(4) == 0);
@@ -71,10 +91,13 @@ int main()
 
   std::swap(iom1, iom2);
   std::vector<insertion_ordered_map<int, int>> vec;
-  for (int i = 0; i < 100000; i++) {
+
+  //debug(iom1.refered);
+    
+  for (int i = 0; i < 1000; i++) {
     iom1.insert(i, i);
   }
-  for (int i = 0; i < 1000000; i++) {
+  for (int i = 0; i < 1000; i++) {
     vec.push_back(iom1);  // Wszystkie obiekty w vec współdzielą dane.
   }
 
