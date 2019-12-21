@@ -8,89 +8,6 @@
 #include <list>
 #include <unordered_map>
 
-#include <bits/stdc++.h>
-using namespace std;
-
-#define PII pair<int, int>
-#define VI vector<int>
-#define VPII vector<PII>
-#define LL long long
-#define LD long double
-#define f first
-#define s second
-#define MP make_pair
-#define PB push_back
-//#define endl '\n'
-#define ALL(c) (c).begin(), (c).end()
-#define SIZ(c) (int)(c).size()
-#define REP(i, n) for (int i = 0; i < (int)(n); i++)
-#define FOR(i, b, e) for (int i = (b); i <= (int)(e); i++)
-#define FORD(i, b, e) for (int i = (b); i >= (int)(e); i--)
-#define ll long long
-#define st f
-#define nd s
-#define pb PB
-#define eb emplace_back
-#define mp make_pair
-#define siz(c) SIZ(c)
-const int inf = 1e9 + 7;
-const LL INF = 1e18L + 7;
-
-#define sim template<class n
-sim, class s> ostream & operator << (ostream &p, pair<n, s> x)
-{return p << "<" << x.f << ", " << x.s << ">";}
-sim> auto operator << (ostream &p, n y) ->
-typename enable_if<!is_same<n, string>::value, decltype(y.begin(), p)>::type
-{int o = 0; p << "{"; for (auto c : y) {if (o++) p << ", "; p << c;} return p << "}";}
-void dor() {cerr << endl;}
-sim, class...s> void dor(n p, s...y) {cerr << p << " "; dor(y...);}
-sim, class s> void mini(n &p, s y) {if (p > y) p = y;}
-sim, class s> void maxi(n &p, s y) {if (p < y) p = y;}
-
-#define DEB
-
-#ifdef DEB
-#define debug(...) dor(__FUNCTION__, ":", __LINE__, ": ", __VA_ARGS__)
-#else
-#define debug(...)
-#endif
-
-#define I(x) #x " = ", (x), " "
-#define A(a, i) #a "[" #i " = ", i, "] = ", a[i], " "
-
-// skopiowany, mozna pozmieniac
-/*template <class T>
-class CowPtr {
-public:
-    typedef std::shared_ptr<T> RefPtr;
-private:
-    RefPtr m_sp;
-    void detach() {
-        T* tmp = m_sp.get();
-        if(!( tmp == 0 || m_sp.unique())) {
-            m_sp = RefPtr(new T(*tmp));
-        }
-    }
-public:
-    CowPtr() : m_sp(nullptr) {}
-    CowPtr(T* t) : m_sp(t) {}
-    CowPtr(const RefPtr& refptr) : m_sp(refptr) {}
-    const T& operator*() const {
-        return *m_sp;
-    }
-    T& operator*() {
-        detach();
-        return *m_sp;
-    }
-    const T* operator->() const {
-        return m_sp.operator->();
-    }
-    T* operator->() {
-        detach();
-        return m_sp.operator->();
-    }
-};*/
-
 template <class K, class V, class Hash = std::hash<K>>
 class insertion_ordered_map {
 private:
@@ -134,7 +51,6 @@ public:
 template <class K, class V, class Hash>
 void insertion_ordered_map<K, V, Hash>::detach() {
     if(!list_ptr.unique()) {
-
         try {
             auto ptr_copy = list_ptr;
             list_ptr = std::make_shared<List>(*list_ptr);
@@ -164,7 +80,7 @@ insertion_ordered_map<K, V, Hash>::insertion_ordered_map() {
         list_ptr = std::make_shared<List>();
         map_ptr = std::make_shared<Map>();
     }
-    catch(exception &e) {
+    catch(std::exception &e) {
         throw e;
     }
 }
@@ -193,7 +109,6 @@ insertion_ordered_map<K, V, Hash>::insertion_ordered_map(insertion_ordered_map c
             throw e;
         }
 
-
         for(typename List::iterator it = list_ptr->begin(); it != list_ptr->end(); ++it) {
             map_ptr->at(it->first) = it;
         }
@@ -201,8 +116,11 @@ insertion_ordered_map<K, V, Hash>::insertion_ordered_map(insertion_ordered_map c
 }
 template <class K, class V, class Hash>
 insertion_ordered_map<K, V, Hash>::insertion_ordered_map(insertion_ordered_map &&other) noexcept :
-    list_ptr(std::move(other.list_ptr)),
-    map_ptr(std::move(other.map_ptr)) {}
+    insertion_ordered_map() {
+    std::swap(list_ptr, other.list_ptr);
+    std::swap(map_ptr, other.map_ptr);
+    std::swap(refered, other.refered);
+}
 
 template <class K, class V, class Hash>
 insertion_ordered_map<K, V, Hash> &insertion_ordered_map<K, V, Hash>::operator=(insertion_ordered_map other) {
@@ -259,6 +177,7 @@ bool insertion_ordered_map<K, V, Hash>::insert(K const &k, V const &v) {
         catch(std::exception& e) {
             throw e;
         }
+        refered = false;
         return true;
     } else {
         try {
@@ -281,6 +200,7 @@ bool insertion_ordered_map<K, V, Hash>::insert(K const &k, V const &v) {
         catch(std::exception &e) {
             throw e;
         }
+        refered = false;
         return false;
     }
 }
@@ -296,10 +216,7 @@ void insertion_ordered_map<K, V, Hash>::erase(K const &k) {
 
     list_ptr->erase(map_ptr->at(k));
     map_ptr->erase(k);
-
-
-    if(list_ptr->empty())
-        refered = false;
+    refered = false;
 }
 
 template <class K, class V, class Hash>
