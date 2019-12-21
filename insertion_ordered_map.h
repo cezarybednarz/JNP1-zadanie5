@@ -144,9 +144,9 @@ void insertion_ordered_map<K, V, Hash>::erase(K const &k){
 }
 
 template <class K, class V, class Hash>
-void merge(insertion_ordered_map<K, V, Hash> const &other) {
+void insertion_ordered_map<K, V, Hash>::merge(insertion_ordered_map<K, V, Hash> const &other) {
     for(const auto &it : *other.list_ptr) {
-        insert(it->first, it->second);
+        insert(it.first, it.second);
     }
 }
 
